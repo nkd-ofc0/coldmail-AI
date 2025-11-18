@@ -17,8 +17,12 @@ except Exception:
     st.error("🚨 Chave da API não encontrada! Configure os 'Secrets' no Streamlit Cloud.")
     st.stop()
 
-# Senha para seus clientes acessarem
-SENHA_MESTRA = "Uixcwevberweajkweer1.!"
+# Agora a senha vem do Cofre, ninguém vê no código
+try:
+    SENHA_MESTRA = st.secrets["SENHA_DO_CLIENTE"]
+except Exception:
+    st.error("🚨 Configuração incompleta: Senha não definida nos Secrets.")
+    st.stop()
 
 # --- 3. Funções do Backend ---
 def scrape_website(url):
@@ -118,4 +122,5 @@ if btn_gerar:
 
 # Rodapé
 st.markdown("---")
+
 st.caption("Desenvolvido para Alavancagem de Vendas B2B. Todos os direitos reservados.")
