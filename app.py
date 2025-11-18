@@ -4,20 +4,24 @@ from bs4 import BeautifulSoup
 from groq import Groq
 
 # --- Configuração da Página ---
-st.set_page_config(page_title="ColdMail AI - Vendas Automáticas", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="ColdMail AI - SaaS", page_icon="💎", layout="wide")
 
-# --- Segredos (Cofre) ---
+# --- Link da Assinatura (Mercado Pago) ---
+LINK_ASSINATURA = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=SEU_LINK_AQUI"
+
+# --- Gestão de Acesso (Banco de Dados Simplificado) ---
+# Pega a chave da API e a lista de clientes permitidos dos Segredos
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-    SENHA_MESTRA = st.secrets["SENHA_DO_CLIENTE"]
+    # A lista virá como uma string única separada por vírgulas. Ex: "joao@gmail.com,maria@hotmail.com"
+    CLIENTES_ATIVOS = st.secrets["CLIENTES_ATIVOS"].split(",")
+    # Remove espaços em branco que podem ter ficado
+    CLIENTES_ATIVOS = [email.strip() for email in CLIENTES_ATIVOS]
 except Exception:
-    st.error("🚨 Erro de Configuração: Chaves não encontradas nos Secrets.")
+    st.error("🚨 Configuração incompleta nos Secrets.")
     st.stop()
 
-# --- Link de Pagamento (Vamos configurar isso jajá) ---
-LINK_CHECKOUT = "https://mpago.la/17N1mwD" 
-
-# --- Funções Backend ---
+# --- Funções Backend (Iguais) ---
 def scrape_website(url):
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
@@ -31,82 +35,82 @@ def scrape_website(url):
 def generate_cold_email(context):
     client = Groq(api_key=GROQ_API_KEY)
     prompt = f"""
-    Aja como um Copywriter Sênior B2B. Crie 3 Cold Emails curtos e persuasivos para vender meus serviços para a empresa descrita abaixo.
-    Dados: {context}
-    Regras: Tom casual, foco em dor/solução, português do Brasil.
+    Aja como um Copywriter B2B Sênior. Crie 3 Cold Emails curtos para vender meus serviços.
+    Contexto do Cliente: {context}
+    Regras: Tom casual, foco em dor/solução, português do Brasil. Sem "Prezados".
     """
     chat = client.chat.completions.create(messages=[{"role":"user","content":prompt}], model="llama-3.3-70b-versatile")
     return chat.choices[0].message.content
 
-# --- INTERFACE COM DESIGN DE VENDAS ---
+# --- INTERFACE ---
 
-# 1. Hero Section (A Promessa)
 st.markdown("""
     <div style='text-align: center; padding: 2rem 0;'>
-        <h1 style='font-size: 3rem; margin-bottom: 0;'>🚀 Chega de ser Ignorado no LinkedIn</h1>
-        <p style='font-size: 1.2rem; color: #666;'>
-            A Inteligência Artificial que lê o site do seu cliente e escreve a abordagem perfeita em 3 segundos.
-        </p>
+        <h1 style='font-size: 3rem; margin-bottom: 0;'>💎 ColdMail AI <span style='font-size: 1.5rem; color: #28a745; vertical-align: middle; border: 1px solid #28a745; padding: 4px 10px; border-radius: 20px;'>PRO</span></h1>
+        <p style='font-size: 1.2rem; color: #666;'>Sua máquina de vendas recorrente.</p>
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Demonstração de Valor (Benefícios)
-col_a, col_b, col_c = st.columns(3)
-col_a.info("⚡ **Economize 40h/mês**\n\nPare de ler sites manualmente. A IA faz a pesquisa pesada por você.")
-col_b.success("🎯 **Hiper-Personalização**\n\nGere e-mails que provam que você conhece a empresa do cliente.")
-col_c.warning("💰 **Aumente suas Vendas**\n\nQuem responde mais rápido e melhor, fecha mais contratos.")
-
-st.divider()
-
-# 3. O Produto (Com Bloqueio)
 col1, col2 = st.columns([2, 1])
 
-with col1:
-    st.subheader("Gerador Automático")
-    target_url = st.text_input("Cole o site da empresa alvo:", placeholder="Ex: www.nubank.com.br")
-    
-    if st.button("✨ Gerar E-mails Agora", type="primary", use_container_width=True):
-        # Verifica se tem senha na sessão
-        if "acesso_liberado" not in st.session_state:
-            st.session_state.acesso_liberado = False
-            
-        if not st.session_state.acesso_liberado:
-            st.toast("🔒 Recurso bloqueado para visitantes.")
-        else:
-            if not target_url:
-                st.warning("Coloque uma URL primeiro.")
-            else:
-                with st.spinner("A IA está lendo o site e escrevendo..."):
-                    content = scrape_website(target_url)
-                    if content:
-                        email_text = generate_cold_email(content)
-                        st.markdown(email_text)
-                    else:
-                        st.error("Erro ao ler site.")
-
+# COLUNA 2: Login / Assinatura
 with col2:
-    # A "Caixa de Pagamento"
     st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; color: #333;'>
-        <h3 style='color: #333;'>🔐 Acesso Pro</h3>
-        <p style='color: #333;'>Desbloqueie gerações ilimitadas e venda todos os dias.</p>
+        <h3 style='color: #333; margin-top:0;'>👤 Área do Assinante</h3>
+        <p style='color: #555; font-size: 0.9rem;'>Para acessar, digite o e-mail cadastrado na sua assinatura.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    senha_input = st.text_input("Tem a senha?", type="password", placeholder="Digite aqui")
+    # Input de Login
+    email_login = st.text_input("Seu E-mail de Acesso", placeholder="exemplo@email.com").lower().strip()
     
-    if senha_input == SENHA_MESTRA:
-        st.session_state.acesso_liberado = True
-        st.success("✅ Acesso Liberado!")
-    elif senha_input:
-        st.error("Senha incorreta.")
+    # Botão de Login
+    if st.button("Entrar / Validar Acesso", use_container_width=True):
+        if email_login in CLIENTES_ATIVOS:
+            st.session_state.logado = True
+            st.session_state.email_usuario = email_login
+            st.toast(f"Bem-vindo de volta, {email_login.split('@')[0]}! 🚀")
+        else:
+            st.session_state.logado = False
+            st.error("🚫 E-mail não encontrado ou assinatura inativa.")
+
+    # Status do Login
+    if "logado" in st.session_state and st.session_state.logado:
+        st.success("✅ Acesso Ativo")
+    else:
+        st.markdown("---")
+        st.markdown("#### 🚀 Ainda não é membro?")
+        st.markdown("Tenha e-mails ilimitados e suporte prioritário.")
+        st.link_button(f"👉 Assinar por R$ 29,90/mês", LINK_ASSINATURA, use_container_width=True)
+        st.caption("Cancele quando quiser. Acesso liberado após confirmação.")
+
+# COLUNA 1: A Ferramenta (Só aparece se logado)
+with col1:
+    st.subheader("Gerador de Oportunidades")
     
-    st.markdown("---")
-    st.markdown("Ainda não tem acesso?")
-    # Botão que leva para o pagamento
-    st.link_button("💳 Comprar Acesso Vitalício (R$ 29,90)", LINK_CHECKOUT, use_container_width=True)
-    st.caption("Pagamento via Pix/Cartão. Liberação imediata no WhatsApp.")
+    # Bloqueio Visual
+    if "logado" not in st.session_state or not st.session_state.logado:
+        st.info("🔒 **Ferramenta Bloqueada.** Faça login ao lado ou assine para começar.")
+        st.markdown("---")
+        # Blur effect (simulado)
+        st.image("https://placehold.co/600x300/eeeeee/cccccc?text=Conteudo+Exclusivo+para+Assinantes", use_column_width=True)
+    else:
+        # Ferramenta Liberada
+        target_url = st.text_input("Cole o site da empresa alvo:")
+        
+        if st.button("✨ Gerar Cold Mail", type="primary"):
+            if not target_url:
+                st.warning("Preciso de um site para ler!")
+            else:
+                with st.spinner("Lendo o site e pensando em estratégias..."):
+                    res = scrape_website(target_url)
+                    if res:
+                        email_final = generate_cold_email(res)
+                        st.markdown("### 🎯 Estratégia Gerada:")
+                        st.markdown(email_final)
+                    else:
+                        st.error("Não consegui ler este site.")
 
-# Rodapé
-st.markdown("<br><br><p style='text-align: center; color: #aaa;'>ColdMail AI © 2025 • Feito para Vendedores de Elite</p>", unsafe_allow_html=True)
-
+st.divider()
+st.caption("Painel Administrativo do SaaS v1.0")
