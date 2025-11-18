@@ -3,124 +3,109 @@ import requests
 from bs4 import BeautifulSoup
 from groq import Groq
 
-# --- 1. Configuração da Página (Visual mais largo e bonito) ---
-st.set_page_config(page_title="ColdMail AI", page_icon="🚀", layout="centered")
+# --- Configuração da Página ---
+st.set_page_config(page_title="ColdMail AI - Vendas Automáticas", page_icon="🚀", layout="wide")
 
-# --- 2. Área de Segurança (Sua API Key fica aqui por enquanto) ---
-# IMPORTANTE: Quando formos subir para o GitHub, vou te ensinar a tirar ela daqui para não vazar.
-# Cole sua chave gsk_... dentro das aspas abaixo:
-# Pega a chave dos "Segredos" do sistema (Configuraremos isso na nuvem)
-
+# --- Segredos (Cofre) ---
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-except Exception:
-    st.error("🚨 Chave da API não encontrada! Configure os 'Secrets' no Streamlit Cloud.")
-    st.stop()
-
-# Agora a senha vem do Cofre, ninguém vê no código
-try:
     SENHA_MESTRA = st.secrets["SENHA_DO_CLIENTE"]
 except Exception:
-    st.error("🚨 Configuração incompleta: Senha não definida nos Secrets.")
+    st.error("🚨 Erro de Configuração: Chaves não encontradas nos Secrets.")
     st.stop()
 
-# --- 3. Funções do Backend ---
+# --- Link de Pagamento (Vamos configurar isso jajá) ---
+LINK_CHECKOUT = "https://link.mercadopago.com.br/SEU_LINK_AQUI" 
+
+# --- Funções Backend ---
 def scrape_website(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        if not url.startswith('http'):
-            url = 'https://' + url
+        if not url.startswith('http'): url = 'https://' + url
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.content, 'html.parser')
-        # Pega apenas texto relevante, ignorando menus e rodapés grandes
-        text_elements = soup.find_all(['h1', 'h2', 'p', 'li', 'h3'])
-        text = " ".join([t.get_text() for t in text_elements])
-        return text[:6000] # Aumentei um pouco o limite de leitura
-    except Exception:
-        return None
+        text = " ".join([t.get_text() for t in soup.find_all(['h1', 'h2', 'p', 'li'])])
+        return text[:6000]
+    except: return None
 
-def generate_cold_email(context_text):
+def generate_cold_email(context):
     client = Groq(api_key=GROQ_API_KEY)
-    
-    # PROMPT AVANÇADO (Engenharia de Prompt)
     prompt = f"""
-    Você é um especialista em Copywriting B2B e Vendas Consultivas.
-    Analise os dados da empresa prospecto abaixo e crie 3 abordagens de e-mail frio (Cold Mail).
-    
-    DADOS DA EMPRESA ALVO:
-    {context_text}
-    
-    DIRETRIZES OBRIGATÓRIAS:
-    1. Tom de voz: Profissional, porém conversacional (nada de "Prezados", "Venho por meio desta").
-    2. Foco: Use a estrutura "Gancho Personalizado -> Dor Possível -> Convite para conversa".
-    3. Tamanho: Mantenha curto (máximo 4 parágrafos curtos).
-    4. Idioma: Português do Brasil.
-    
-    SAÍDA ESPERADA (3 OPÇÕES):
-    Opção 1: Focada em uma novidade ou conquista recente da empresa (ou missão deles).
-    Opção 2: Focada em eficiência operacional (redução de custos/tempo).
-    Opção 3: Uma abordagem "soft" (pergunta curiosa sobre o mercado deles).
+    Aja como um Copywriter Sênior B2B. Crie 3 Cold Emails curtos e persuasivos para vender meus serviços para a empresa descrita abaixo.
+    Dados: {context}
+    Regras: Tom casual, foco em dor/solução, português do Brasil.
     """
+    chat = client.chat.completions.create(messages=[{"role":"user","content":prompt}], model="llama-3.3-70b-versatile")
+    return chat.choices[0].message.content
 
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile", # Modelo mais inteligente
-            temperature=0.7 # Criatividade calibrada
-        )
-        return chat_completion.choices[0].message.content
-    except Exception as e:
-        return f"Erro: {e}"
+# --- INTERFACE COM DESIGN DE VENDAS ---
 
-# --- 4. Interface (Frontend) ---
+# 1. Hero Section (A Promessa)
+st.markdown("""
+    <div style='text-align: center; padding: 2rem 0;'>
+        <h1 style='font-size: 3rem; margin-bottom: 0;'>🚀 Chega de ser Ignorado no LinkedIn</h1>
+        <p style='font-size: 1.2rem; color: #666;'>
+            A Inteligência Artificial que lê o site do seu cliente e escreve a abordagem perfeita em 3 segundos.
+        </p>
+    </div>
+""", unsafe_allow_html=True)
 
-# Cabeçalho Estiloso
-st.markdown("<h1 style='text-align: center; color: #2E86C1;'>🚀 ColdMail AI</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Transforme qualquer site em uma oportunidade de venda em segundos.</p>", unsafe_allow_html=True)
+# 2. Demonstração de Valor (Benefícios)
+col_a, col_b, col_c = st.columns(3)
+col_a.info("⚡ **Economize 40h/mês**\n\nPare de ler sites manualmente. A IA faz a pesquisa pesada por você.")
+col_b.success("🎯 **Hiper-Personalização**\n\nGere e-mails que provam que você conhece a empresa do cliente.")
+col_c.warning("💰 **Aumente suas Vendas**\n\nQuem responde mais rápido e melhor, fecha mais contratos.")
+
 st.divider()
 
-# Barra Lateral (Login)
-with st.sidebar:
-    st.header("🔐 Acesso Restrito")
-    senha = st.text_input("Digite sua chave de acesso", type="password")
-    st.info("Dúvidas? Suporte no WhatsApp: (21) 97740-2510")
+# 3. O Produto (Com Bloqueio)
+col1, col2 = st.columns([2, 1])
 
-# Trava de Segurança
-if senha != SENHA_MESTRA:
-    st.warning("⚠️ Por favor, insira a senha para desbloquear a ferramenta.")
-    st.stop()
-
-# Área Principal (Só aparece se a senha estiver certa)
-col1, col2 = st.columns([3, 1])
 with col1:
-    target_url = st.text_input("Site da Empresa (URL)", placeholder="ex: www.ambev.com.br")
-with col2:
-    st.write("") # Espaço vazio para alinhar
-    st.write("") 
-    btn_gerar = st.button("✨ Gerar E-mails", use_container_width=True)
-
-if btn_gerar:
-    if not target_url:
-        st.toast("❌ Digite uma URL primeiro!")
-    elif "COLE_SUA_CHAVE" in GROQ_API_KEY:
-         st.error("🚨 ERRO: O dono do software esqueceu de configurar a API Key no código.")
-    else:
-        with st.spinner("🕵️‍♂️ Lendo o site e criando estratégias..."):
-            site_content = scrape_website(target_url)
+    st.subheader("Gerador Automático")
+    target_url = st.text_input("Cole o site da empresa alvo:", placeholder="Ex: www.nubank.com.br")
+    
+    if st.button("✨ Gerar E-mails Agora", type="primary", use_container_width=True):
+        # Verifica se tem senha na sessão
+        if "acesso_liberado" not in st.session_state:
+            st.session_state.acesso_liberado = False
             
-            if site_content:
-                result = generate_cold_email(site_content)
-                
-                st.success("Análise concluída! Aqui estão suas opções:")
-                st.markdown("---")
-                
-                # Caixa bonita para o resultado
-                with st.container(border=True):
-                    st.markdown(result)
+        if not st.session_state.acesso_liberado:
+            st.toast("🔒 Recurso bloqueado para visitantes.")
+        else:
+            if not target_url:
+                st.warning("Coloque uma URL primeiro.")
             else:
-                st.error("Não consegui ler o site. Verifique se o endereço está correto ou se o site tem bloqueios de segurança.")
+                with st.spinner("A IA está lendo o site e escrevendo..."):
+                    content = scrape_website(target_url)
+                    if content:
+                        email_text = generate_cold_email(content)
+                        st.markdown(email_text)
+                    else:
+                        st.error("Erro ao ler site.")
+
+with col2:
+    # A "Caixa de Pagamento"
+    st.markdown("""
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd;'>
+        <h3>🔐 Acesso Pro</h3>
+        <p>Desbloqueie gerações ilimitadas e venda todos os dias.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    senha_input = st.text_input("Tem a senha?", type="password", placeholder="Digite aqui")
+    
+    if senha_input == SENHA_MESTRA:
+        st.session_state.acesso_liberado = True
+        st.success("✅ Acesso Liberado!")
+    elif senha_input:
+        st.error("Senha incorreta.")
+    
+    st.markdown("---")
+    st.markdown("Ainda não tem acesso?")
+    # Botão que leva para o pagamento
+    st.link_button("💳 Comprar Acesso Vitalício (R$ 29,90)", LINK_CHECKOUT, use_container_width=True)
+    st.caption("Pagamento via Pix/Cartão. Liberação imediata no WhatsApp.")
 
 # Rodapé
-st.markdown("---")
-
-st.caption("Desenvolvido para Alavancagem de Vendas B2B. Todos os direitos reservados.")
+st.markdown("<br><br><p style='text-align: center; color: #aaa;'>ColdMail AI © 2025 • Feito para Vendedores de Elite</p>", unsafe_allow_html=True)
