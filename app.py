@@ -87,9 +87,9 @@ with col1:
 with col2:
     # A "Caixa de Pagamento"
     st.markdown("""
-    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd;'>
-        <h3>🔐 Acesso Pro</h3>
-        <p>Desbloqueie gerações ilimitadas e venda todos os dias.</p>
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; color: #333;'>
+        <h3 style='color: #333;'>🔐 Acesso Pro</h3>
+        <p style='color: #333;'>Desbloqueie gerações ilimitadas e venda todos os dias.</p>
     </div>
     """, unsafe_allow_html=True)
     
