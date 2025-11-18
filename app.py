@@ -52,7 +52,7 @@ except Exception:
     CLIENTES_ATIVOS = []
     GROQ_API_KEY = ""
 
-LINK_ASSINATURA = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=SEU_LINK_AQUI"
+LINK_ASSINATURA = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=ced44fcee7874a52a0ab583c6adec25d"
 
 
 def scrape_website(url):
@@ -171,3 +171,4 @@ st.markdown(f"""
     ColdMail AI © {datetime.now().year} • Desenvolvido para Vendedores de Elite • <a href='#' style='color:#888;'>Termos de Uso</a>
 </div>
 """, unsafe_allow_html=True)
+
