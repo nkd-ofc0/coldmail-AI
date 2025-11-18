@@ -15,7 +15,7 @@ except Exception:
     st.stop()
 
 # --- Link de Pagamento (Vamos configurar isso jajá) ---
-LINK_CHECKOUT = "https://link.mercadopago.com.br/SEU_LINK_AQUI" 
+LINK_CHECKOUT = "https://mpago.la/17N1mwD" 
 
 # --- Funções Backend ---
 def scrape_website(url):
@@ -109,3 +109,4 @@ with col2:
 
 # Rodapé
 st.markdown("<br><br><p style='text-align: center; color: #aaa;'>ColdMail AI © 2025 • Feito para Vendedores de Elite</p>", unsafe_allow_html=True)
+
