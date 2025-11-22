@@ -159,7 +159,7 @@ with col_login:
         st.caption("Tenha acesso ilimitado à IA mais poderosa de vendas do mercado.")
         
         
-        st.markdown("<h2 style='text-align:center; color:#00C853; margin:0;'>R$ 29,90<span style='font-size:1rem; color:#888'>/mês</span></h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#00C853; margin:0;'>R$ 16,90<span style='font-size:1rem; color:#888'>/mês</span></h2>", unsafe_allow_html=True)
         
         st.link_button("👉 ASSINAR AGORA", LINK_ASSINATURA, type="primary", use_container_width=True)
         st.caption("Cancela quando quiser. Acesso imediato.")
@@ -171,4 +171,5 @@ st.markdown(f"""
     ColdMail AI © {datetime.now().year} • Desenvolvido para Vendedores de Elite • <a href='#' style='color:#888;'>Termos de Uso</a>
 </div>
 """, unsafe_allow_html=True)
+
 
